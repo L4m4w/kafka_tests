@@ -6,7 +6,15 @@ class AccountApi:
         self._client = httpx.Client(base_url=self.base_url)
 
     def register_user(self, login: str, email: str, password: str):
-        data = {"login": login, "email": email, "password": password}
+        data = {
+            "login": login,
+            "email": email,
+            "password": password
+        }
         return self._client.post("/register/user/async-register", json=data)
 
-
+    def activate_user(self, token: str):
+        params = {
+            "token": token,
+        }
+        return self._client.put("/register/user/activate", params=params)
