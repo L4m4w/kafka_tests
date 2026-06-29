@@ -5,7 +5,7 @@ on: [ push, pull_request ]
 jobs:
   test:
     name: Python tests
-    runs-on: Ubuntu
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
