@@ -4,7 +4,10 @@ from types import TracebackType
 
 from kafka import KafkaProducer
 
-class KafkaProducerApi:
+from frame.internal.singleton import Singleton
+
+
+class KafkaProducerApi(Singleton):
     def __init__(self, base_url: list[str] = ["185.185.143.231:9092"]) -> None:
         self.base_url = base_url
         self.producer: KafkaProducer | None = None
