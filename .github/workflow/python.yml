@@ -7,7 +7,7 @@ jobs:
     name: Python tests
     runs-on: Ubuntu
     steps:
-      - user: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
