@@ -5,14 +5,14 @@ class MailApi:
         self.base_url = base_url
         self._client = httpx.Client(base_url=self.base_url)
 
-    def search_mail(self, query: str):
+    def search_mail(self, query: str, timeout=None):
         params = {
             "query": query,
             "limit": 1,
             "kind": "containing",
             "start": 0
         }
-        response = self._client.get("/mail/mail/search", params=params)
+        response = self._client.get("/mail/mail/search", params=params, timeout=timeout)
         print(response.content)
         return response
 
