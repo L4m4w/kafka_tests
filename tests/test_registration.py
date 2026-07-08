@@ -1,8 +1,9 @@
 import time
 
+from frame.helpers.kafka.consumers.register_events import RegisterEventsSubscriber
 from frame.internal.http.account import AccountApi
 from frame.internal.http.mail import MailApi
-from frame.internal.kafka.kafka_base import KafkaProducerApi
+from frame.internal.kafka.producer import KafkaProducerApi
 
 
 def test_failed_registration(account: AccountApi, mail: MailApi):
@@ -55,3 +56,14 @@ def test_register_events_error_consumer(
 
     activation_response = account.activate_user(activation_token)
     assert activation_response.status_code == 200
+
+def test_success_registration_with_kafka_consumer(
+        register_events_subscriber: RegisterEventsSubscriber,
+        kafka_producer: KafkaProducerApi,
+        registration_message: dict,
+        mail: MailApi,
+        wait_for_mail
+):
+    kafka_producer.send(topic="register-events", value=registration_message)
+
+    register_events_subscriber.find_message(login=registration_message["login"])

@@ -4,9 +4,11 @@ import time
 
 import pytest
 
+from frame.helpers.kafka.consumers.register_events import RegisterEventsSubscriber
 from frame.internal.http.account import AccountApi
 from frame.internal.http.mail import MailApi
-from frame.internal.kafka.kafka_base import KafkaProducerApi
+from frame.internal.kafka.consumer import KafkaConsumerApi
+from frame.internal.kafka.producer import KafkaProducerApi
 
 
 @pytest.fixture(scope="session")
@@ -21,6 +23,18 @@ def mail() -> MailApi:
 def kafka_producer() -> KafkaProducerApi:
     with KafkaProducerApi() as producer:
         yield producer
+
+@pytest.fixture(scope="session")
+def register_events_subscriber() -> RegisterEventsSubscriber:
+        return RegisterEventsSubscriber()
+
+@pytest.fixture(scope="session", autouse=True)
+def kafka_consumer(
+        register_events_subscriber: RegisterEventsSubscriber
+) -> KafkaConsumerApi:
+    with KafkaConsumerApi(subscribers=[register_events_subscriber]) as consumer:
+        yield consumer
+
 
 @pytest.fixture()
 def registration_message() -> dict:
