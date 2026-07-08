@@ -4,7 +4,6 @@ import time
 from collections import defaultdict
 
 from kafka import KafkaConsumer
-import queue
 
 from frame.internal.kafka.subscriber import Subscriber
 from frame.internal.singleton import Singleton

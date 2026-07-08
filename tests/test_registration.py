@@ -1,28 +1,38 @@
 import time
 
 from frame.helpers.kafka.consumers.register_events import RegisterEventsSubscriber
+from frame.helpers.kafka.consumers.register_events_errors import RegisterEventsErrorsSubscriber
 from frame.internal.http.account import AccountApi
 from frame.internal.http.mail import MailApi
 from frame.internal.kafka.producer import KafkaProducerApi
+from frame.helpers.consts.messages.kafka_error_message import KafkaRegisterEventsErrorsMessage
 
 
 def test_failed_registration(account: AccountApi, mail: MailApi):
-    expectrd_mail = "string@mail.ru"
-    account.register_user(login="string", email=expectrd_mail, password="string")
+    expected_mail = "string@mail.ru"
+    account.register_user(login="string", email=expected_mail, password="string")
 
     for _ in range(10):
-        responce = mail.search_mail(query=expectrd_mail)
-        if responce.json()["total"] > 0:
+        response = mail.search_mail(query=expected_mail)
+        if response.json()["total"] > 0:
             raise AssertionError("Email was found")
         time.sleep(1)
 
 
-def test_success_registration(account: AccountApi, mail: MailApi, registration_message: dict, wait_for_mail):
+def test_success_registration(
+        register_events_subscriber: RegisterEventsSubscriber,
+        account: AccountApi,
+        mail: MailApi,
+        registration_message: dict,
+        wait_for_mail
+):
+    login = registration_message["login"]
     account.register_user(
         **registration_message
     )
+    register_events_subscriber.find_message(login = login)
 
-    mail_response = wait_for_mail(registration_message["email"])
+    mail_response = wait_for_mail(login)
     assert mail_response.json()["total"] == 1
 
 def test_success_registration_with_kafka(
@@ -67,3 +77,30 @@ def test_success_registration_with_kafka_consumer(
     kafka_producer.send(topic="register-events", value=registration_message)
 
     register_events_subscriber.find_message(login=registration_message["login"])
+
+def test_failed_registration_with_kafka(
+        register_events_subscriber: RegisterEventsSubscriber,
+        register_events_errors_subscriber: RegisterEventsErrorsSubscriber,
+        account: AccountApi,
+):
+    expected_mail = "string@mail.ru"
+    account.register_user(login="string", email=expected_mail, password="string")
+
+    register_events_subscriber.find_message(login="string")
+    register_events_errors_subscriber.find_message_by_error_type(
+        login="string",
+        error_type="validation"
+    )
+def test_push_and_read_kafka_message(
+        kafka_producer: KafkaProducerApi,
+        register_events_errors_subscriber: RegisterEventsErrorsSubscriber,
+):
+    kafka_producer.send(
+        topic="register-events-errors",
+        value=KafkaRegisterEventsErrorsMessage.REGISTER_EVENTS_ERRORS_UNKNOWN_MESSAGE
+    )
+    register_events_errors_subscriber.find_message_by_error_type(
+        login="string",
+        error_type="validation"
+    )
+
