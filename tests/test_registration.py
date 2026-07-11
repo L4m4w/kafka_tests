@@ -114,3 +114,13 @@ def test_rmq(rmq_publisher: RMQPublisher):
         "body": "Publish message",
     }
     rmq_publisher.publish("dm.mail.sending", message)
+
+def test_push_rmq_mail_message(
+        rmq_publisher: RMQPublisher,
+        mail_message,
+        wait_for_mail,
+):
+    rmq_publisher.publish("dm.mail.sending", mail_message)
+
+    mail_response = wait_for_mail(mail_message["address"])
+    assert mail_response.json()["total"] == 1
