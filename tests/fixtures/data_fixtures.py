@@ -19,6 +19,17 @@ def registration_message() -> dict:
     return message
 
 @pytest.fixture()
+def mail_message() -> dict:
+    base = uuid.uuid4().hex
+    expected_mail = f"{base}ng@mail.ru"
+    message = {
+        "address": expected_mail,
+        "subject": "Publish message",
+        "body": "Publish message",
+    }
+    return message
+
+@pytest.fixture()
 def register_events_error_message():
     def _register_events_error_message(base_login_message: dict) -> dict:
         message = {
