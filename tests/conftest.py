@@ -6,6 +6,7 @@ from frame.internal.http.account import AccountApi
 from frame.internal.http.mail import MailApi
 from frame.internal.kafka.consumer import KafkaConsumerApi
 from frame.internal.kafka.producer import KafkaProducerApi
+from frame.internal.rmq.publisher import RMQPublisher
 
 pytest_plugins = [
     "tests.fixtures.data_fixtures"
@@ -40,3 +41,7 @@ def kafka_consumer(
     with KafkaConsumerApi(subscribers=[register_events_subscriber, register_events_errors_subscriber]) as consumer:
         yield consumer
 
+@pytest.fixture(scope="session")
+def rmq_publisher() -> RMQPublisher:
+    with RMQPublisher() as publisher:
+        yield publisher
