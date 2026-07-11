@@ -3,6 +3,7 @@ import uuid
 
 from frame.helpers.kafka.consumers.register_events import RegisterEventsSubscriber
 from frame.helpers.kafka.consumers.register_events_errors import RegisterEventsErrorsSubscriber
+from frame.helpers.rmq.consumers.dm_mail_sending import DmMailSending
 from frame.internal.http.account import AccountApi
 from frame.internal.http.mail import MailApi
 from frame.internal.kafka.producer import KafkaProducerApi
@@ -33,6 +34,24 @@ def test_success_registration(
         **registration_message
     )
     register_events_subscriber.find_message(login = login)
+
+    mail_response = wait_for_mail(login)
+    assert mail_response.json()["total"] == 1
+
+def test_success_registration_with_rmq(
+        rmq_dm_mail_sending_consumer: DmMailSending,
+        register_events_subscriber: RegisterEventsSubscriber,
+        account: AccountApi,
+        mail: MailApi,
+        registration_message: dict,
+        wait_for_mail
+):
+    login = registration_message["login"]
+    account.register_user(
+        **registration_message
+    )
+    register_events_subscriber.find_message(login = login)
+    rmq_dm_mail_sending_consumer.find_message(login = login)
 
     mail_response = wait_for_mail(login)
     assert mail_response.json()["total"] == 1
